@@ -4,9 +4,10 @@
     <isExposed>true</isExposed>
     <targets>
         <target>lightning__FlowScreen</target>
+        <target>lightning__RecordPage</target>
     </targets>
     <targetConfigs>
-        <targetConfig targets="lightning__FlowScreen">
+        <targetConfig targets="lightning__FlowScreen,lightning__RecordPage">
             <property name="channelsToInclude" type="String" label="Channels to Include (Semicolon Separated)" description="Semicolon separated list of channels to filter quick text by (e.g. Email;Chat)." />
             <property name="btnVariant" type="String" label="Button Variant" description="The variant of the button to use. Defaults to 'brand'." />
             <property name="flowOutputText"
