@@ -3,18 +3,12 @@ public with sharing class MergeFieldService {
     // Pattern to match merge fields like {!Object.Field}
     private static final Pattern MERGE_FIELD_PATTERN = Pattern.compile('\\{!(.*?)\\}');
 
-    /**
-     * Replaces merge fields in the given text with values from the recordId.
-     * @param text The text containing merge fields (e.g., "Hello {!Contact.FirstName}")
-     * @param recordId The ID of the record to pull data from.
-     * @return The text with merge fields resolved.
-     */
-    public static String resolve(String text, Id recordId) {
+    public static String resolveTextMessage(String text, Id recordId) {
         if (String.isBlank(text) || recordId == null) {
             return text;
         }
 
-        // 1. Identify all merge fields in the text
+        // 1. Find all merge tokens
         Matcher matcher = MERGE_FIELD_PATTERN.matcher(text);
         Set<String> mergeFields = new Set<String>();
         while (matcher.find()) {
@@ -25,15 +19,15 @@ public with sharing class MergeFieldService {
             return text;
         }
 
-        // 2. Determine SObject Type and validate fields
+        // 2. Identify Object Type and Fields to Query
         String sObjectType = String.valueOf(recordId.getSobjectType());
         Set<String> fieldsToQuery = new Set<String>();
         
         for (String fieldToken : mergeFields) {
-            // Token format expected: SObjectType.FieldName (e.g., Case.Subject)
             List<String> parts = fieldToken.split('\\.');
+            // Check if token starts with the correct object name (e.g. Case.Subject)
             if (parts.size() >= 2 && parts[0].equalsIgnoreCase(sObjectType)) {
-                // Remove the Object prefix to get the field path
+                // Remove the Object prefix to get the actual field path
                 fieldsToQuery.add(fieldToken.substring(parts[0].length() + 1));
             }
         }
@@ -42,7 +36,7 @@ public with sharing class MergeFieldService {
             return text;
         }
 
-        // 3. Query the record
+        // 3. Dynamic Query
         String query = 'SELECT ' + String.join(new List<String>(fieldsToQuery), ',') + 
                        ' FROM ' + sObjectType + 
                        ' WHERE Id = :recordId LIMIT 1';
@@ -50,10 +44,9 @@ public with sharing class MergeFieldService {
         try {
             SObject record = Database.query(query);
 
-            // 4. Replace tokens in the text
+            // 4. Replacement Logic
             for (String fullToken : mergeFields) {
                 List<String> parts = fullToken.split('\\.');
-                // Only process tokens matching the current object type
                 if (parts.size() >= 2 && parts[0].equalsIgnoreCase(sObjectType)) {
                     String fieldPath = fullToken.substring(parts[0].length() + 1);
                     Object val = getFieldValue(record, fieldPath);
@@ -62,14 +55,14 @@ public with sharing class MergeFieldService {
                 }
             }
         } catch (Exception e) {
-            System.debug(LoggingLevel.ERROR, 'Error resolving merge fields: ' + e.getMessage());
-            // Return original text on failure to avoid breaking the UI
+            System.debug(LoggingLevel.ERROR, 'MergeFieldService Error: ' + e.getMessage());
+            // Return text unresolved if query fails
         }
 
         return text;
     }
 
-    // Helper to handle potential cross-object traversals (e.g., Account.Name) if queried
+    // Helper to safely traverse relationships (e.g. Account.Owner.Name)
     private static Object getFieldValue(SObject record, String fieldPath) {
         SObject current = record;
         List<String> fields = fieldPath.split('\\.');
