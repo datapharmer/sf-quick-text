@@ -1,74 +1,98 @@
-import { api, LightningElement } from 'lwc';
+import { api, LightningElement, wire } from 'lwc';
 import { FlowAttributeChangeEvent } from 'lightning/flowSupport'; 
-import getQuickText from '@salesforce/apex/QuickTextHelper.getQuickText'
+import getQuickText from '@salesforce/apex/QuickTextHelper.getQuickText';
+// Import the new resolve method
+import resolveQuickText from '@salesforce/apex/QuickTextHelper.resolveQuickText';
 
 export default class QuickText extends LightningElement {
 
-    @api channelsToInclude = ''
-    @api btnVariant = 'brand'
-
+    // IMPORTANT: Allow Salesforce to inject the current record ID
+    @api recordId;
+    
+    @api channelsToInclude = '';
+    @api btnVariant = 'brand';
     @api flowOutputText = '';
 
-    quickTextValues = []
-    showQuickTextModal = false
-    selectedQuickText = ''
-    searchQuickTextKey = ''
+    quickTextValues = [];
+    showQuickTextModal = false;
+    selectedQuickText = ''; // This holds the RAW text (with merge fields)
+    searchQuickTextKey = '';
 
     connectedCallback() {
-        this.fetchQuickText()
+        this.fetchQuickText();
     }
 
     get quickTextOptions() {
         if (this.searchQuickTextKey) {
-            return this.quickTextValues.filter(item => (item?.label?.toLowerCase().includes(this.searchQuickTextKey)))
+            return this.quickTextValues.filter(item => (item?.label?.toLowerCase().includes(this.searchQuickTextKey)));
         }
-        return this.quickTextValues
+        return this.quickTextValues;
     }
 
     async fetchQuickText() {
         try {
-            this.quickTextValues = (await getQuickText({
+            const data = await getQuickText({
                 channels: this.channelsToInclude
-            })).map(item => ({label:item.Name, value:item.Message}))
-
-            console.log(JSON.parse(JSON.stringify(this.quickTextValues)))
+            });
+            // Map Name to Label, and Message (raw) to Value
+            this.quickTextValues = data.map(item => ({label: item.Name, value: item.Message}));
         } catch (error) {
-            console.log(error)
+            console.error('Error fetching QuickText:', error);
         }
     }
 
     handleAddQuickText() {
-        this.showQuickTextModal = true
+        this.showQuickTextModal = true;
     }
+
     closeQuickTextModal() {
-        this.showQuickTextModal = false
-        this.selectedQuickText = ''
+        this.showQuickTextModal = false;
+        this.selectedQuickText = '';
+        this.searchQuickTextKey = '';
     }
 
     handleQuickTextSearch(event) {
-        this.searchQuickTextKey = event.detail.value?.toLowerCase()
+        this.searchQuickTextKey = event.detail.value?.toLowerCase();
     }
+
     handleQuickTextSelect(event) {
-        this.selectedQuickText = event.detail.value
+        // Stores the raw message (e.g., "Hello {!Contact.FirstName}")
+        this.selectedQuickText = event.detail.value;
     }
     
-    AddSelectedQuickText() {
+    async AddSelectedQuickText() {
+        let finalText = this.selectedQuickText;
+
+        // ONLY resolve if we have a recordId and text to resolve
+        if (this.recordId && finalText && finalText.includes('{!')) {
+            try {
+                // Call Apex to resolve fields
+                finalText = await resolveQuickText({ 
+                    text: this.selectedQuickText, 
+                    recordId: this.recordId 
+                });
+            } catch (error) {
+                console.error('Error resolving merge fields', error);
+                // Fallback: If resolution fails, we still send the raw text
+                finalText = this.selectedQuickText; 
+            }
+        }
+
+        // 1. Dispatch Custom Event (for standard LWC usage)
         this.dispatchEvent(
             new CustomEvent('quicktextselect', {
                 detail: {
-                    value: this.selectedQuickText
+                    value: finalText
                 }
             })
-        )
+        );
 
-        this.flowOutputText = this.selectedQuickText; 
+        // 2. Update Flow Attribute (for Flow usage)
+        this.flowOutputText = finalText; 
         this.dispatchEvent(
             new FlowAttributeChangeEvent('flowOutputText', this.flowOutputText)
         );
 
-        this.selectedQuickText = ''
-        this.searchQuickTextKey = ''
-
-        this.closeQuickTextModal()
+        this.closeQuickTextModal();
     }
 }
