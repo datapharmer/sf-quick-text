@@ -3,13 +3,10 @@
     <apiVersion>65.0</apiVersion>
     <isExposed>true</isExposed>
     <targets>
-        <target>lightning__AppPage</target>
-        <target>lightning__RecordPage</target>
-        <target>lightning__HomePage</target>
         <target>lightning__FlowScreen</target>
     </targets>
     <targetConfigs>
-        <targetConfig targets="lightning__RecordPage,lightning__AppPage,lightning__HomePage,lightning__FlowScreen">
+        <targetConfig targets="lightning__FlowScreen">
             <property name="channelsToInclude" type="String" label="Channels to Include (Semicolon Separated)" description="Semicolon separated list of channels to filter quick text by (e.g. Email;Chat)." />
             <property name="btnVariant" type="String" label="Button Variant" description="The variant of the button to use. Defaults to 'brand'." />
         </targetConfig>
