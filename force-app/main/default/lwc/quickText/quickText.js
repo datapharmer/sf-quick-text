@@ -6,7 +6,7 @@ import resolveQuickText from '@salesforce/apex/QuickTextHelper.resolveQuickText'
 
 export default class QuickText extends LightningElement {
 
-    // IMPORTANT: Allow Salesforce to inject the current record ID
+    // Allow Salesforce to inject the current record ID
     @api recordId;
     
     @api channelsToInclude = '';
@@ -78,7 +78,7 @@ export default class QuickText extends LightningElement {
             }
         }
 
-        // 1. Dispatch Custom Event (for standard LWC usage)
+        // Dispatch Custom Event (for standard LWC usage)
         this.dispatchEvent(
             new CustomEvent('quicktextselect', {
                 detail: {
@@ -87,7 +87,7 @@ export default class QuickText extends LightningElement {
             })
         );
 
-        // 2. Update Flow Attribute (for Flow usage)
+        // Update Flow Attribute (for Flow usage)
         this.flowOutputText = finalText; 
         this.dispatchEvent(
             new FlowAttributeChangeEvent('flowOutputText', this.flowOutputText)
