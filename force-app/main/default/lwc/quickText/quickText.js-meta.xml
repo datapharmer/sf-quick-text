@@ -10,9 +10,5 @@
             <property name="channelsToInclude" type="String" label="Channels to Include (Semicolon Separated)" description="Semicolon separated list of channels to filter quick text by (e.g. Email;Chat)." />
             <property name="btnVariant" type="String" label="Button Variant" description="The variant of the button to use. Defaults to 'brand'." />
         </targetConfig>
-        
-        <targetConfig targets="lightning__FlowScreen">
-            <property name="availableActions" type="String[]" />
-        </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>
