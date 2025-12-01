@@ -1,0 +1,28 @@
+<template>
+    <lightning-card title="Internal Comment" icon-name="standard:case_comment">
+        <div class="slds-p-around_medium">
+            <lightning-textarea 
+                name="internalComment" 
+                label="Comment Body" 
+                value={commentBody}
+                onchange={handleTextChange}
+                placeholder="Type your internal comment here..."
+                class="slds-m-bottom_small">
+            </lightning-textarea>
+
+            <div class="slds-grid slds-grid_align-spread">
+                <c-quick-text 
+                    onquicktextselect={handleQuickTextSelect} 
+                    btn-variant="neutral"
+                    channels-to-include="Internal;Case"> </c-quick-text>
+
+                <lightning-button 
+                    variant="brand" 
+                    label="Post Internal Comment" 
+                    onclick={handleSave}
+                    disabled={isSaving}>
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>
