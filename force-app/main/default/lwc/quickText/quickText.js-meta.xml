@@ -9,6 +9,11 @@
         <targetConfig targets="lightning__FlowScreen">
             <property name="channelsToInclude" type="String" label="Channels to Include (Semicolon Separated)" description="Semicolon separated list of channels to filter quick text by (e.g. Email;Chat)." />
             <property name="btnVariant" type="String" label="Button Variant" description="The variant of the button to use. Defaults to 'brand'." />
+            <property name="flowOutputText"
+                      type="String"
+                      label="Selected Quick Text Content for Flow"
+                      role="outputOnly"
+                      description="The content of the Quick Text selected by the user, for assignment to a Flow variable."/>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>
