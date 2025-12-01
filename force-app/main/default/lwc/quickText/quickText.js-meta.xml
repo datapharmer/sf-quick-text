@@ -15,7 +15,7 @@
                       label="Selected Quick Text Content for Flow"
                       role="outputOnly"
                       description="The content of the Quick Text selected by the user, for assignment to a Flow variable."/>
-            <property name="recordId" type="String" label="Record ID (Context)" description="Pass {!$Flow.CurrentRecord} or similar"/>
+            <property name="recordId" type="String" label="Record ID" description="Pass {!$Flow.CurrentRecord} or similar"/>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>
