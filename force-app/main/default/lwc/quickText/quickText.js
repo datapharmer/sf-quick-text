@@ -1,10 +1,13 @@
 import { api, LightningElement } from 'lwc';
+import { FlowAttributeChangeEvent } from 'lightning/flowSupport'; 
 import getQuickText from '@salesforce/apex/QuickTextHelper.getQuickText'
 
 export default class QuickText extends LightningElement {
 
     @api channelsToInclude = ''
     @api btnVariant = 'brand'
+
+    @api flowOutputText = '';
 
     quickTextValues = []
     showQuickTextModal = false
@@ -48,8 +51,8 @@ export default class QuickText extends LightningElement {
     handleQuickTextSelect(event) {
         this.selectedQuickText = event.detail.value
     }
+    
     AddSelectedQuickText() {
-
         this.dispatchEvent(
             new CustomEvent('quicktextselect', {
                 detail: {
@@ -57,6 +60,11 @@ export default class QuickText extends LightningElement {
                 }
             })
         )
+
+        this.flowOutputText = this.selectedQuickText; 
+        this.dispatchEvent(
+            new FlowAttributeChangeEvent('flowOutputText', this.flowOutputText)
+        );
 
         this.selectedQuickText = ''
         this.searchQuickTextKey = ''
